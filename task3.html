@@ -92,7 +92,7 @@
     // функция определения координат
     function getCoords() {
       if (!navigator.geolocation) {
-        userCoords.textContent = 'Ваш браузер не дружит с геолокацией...';
+        userCoords.textContent = 'Информация о местоположении недоступна';
       } else {
         navigator.geolocation.getCurrentPosition(success, error);
       }
@@ -103,7 +103,7 @@
       }
 
       function error() {
-        userCoords.textContent = 'Не получается определить вашу геолокацию :(';
+        userCoords.textContent = 'Информация о местоположении недоступна';
       }
     }
 
