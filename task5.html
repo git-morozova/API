@@ -72,6 +72,7 @@ btnGeo.addEventListener('click', () => {
   if (!navigator.geolocation) {
     error();
   } else {
+    errorText.innerText = '';
     navigator.geolocation.getCurrentPosition(success, error);
   }
 
