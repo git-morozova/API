@@ -59,9 +59,9 @@ btnSend.addEventListener('click', () => {
     errorText.innerText = '';
     websocket.send(message); //отправляем сообщение на сервер   
     output.innerHTML += `<div class="right">${message}</div>`; //выводим сообщение в чат  
-    
+
     websocket.onmessage = function(evt) {
-    output.innerHTML += `<div class="left">${evt.data}</div>`; //выводим ответ сервера в чат
+      output.innerHTML += `<div class="left">${evt.data}</div>`; //выводим ответ сервера в чат    
     };
   }
 });
@@ -79,11 +79,13 @@ btnGeo.addEventListener('click', () => {
     const { longitude, latitude }  = position.coords;
     const url = `https://www.openstreetmap.org/search?whereami=1&query=${latitude}%2C${longitude}#map=12/${latitude}/${longitude}`; 
     
-    websocket.send(url); //отправляем на сервер         
+    websocket.send(url); //отправляем ссылку на сервер         
     output.innerHTML += `<div id="userGeo" class="right"><a href="` + url + `" target="_blank">Гео-локация</a></div>`; //выводим сообщение в чат 
-  }
 
-  websocket.onmessage = function(evt) { console.log(evt.data) }; //НЕ выводим ответ сервера в чат
+    websocket.onmessage = function(evt) { 
+      console.log(evt.data)  //НЕ выводим ответ сервера в чат
+    };
+  }  
       
   function error () {
     errorText.innerText = 'Информация о геолокации недоступна';
