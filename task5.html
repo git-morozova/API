@@ -14,119 +14,82 @@
     input:focus { border:4px solid #b3dfbd }
     .btn { width:130px; padding: 0; border: none; cursor: pointer; padding: 7px; font-size: 15px; line-height: 24px; color: #424649; background: #bad7ec; transition: 0.3s;font-weight: bold;}
     .btn:hover {  background: #b3dfbd; } 
-    #output { border:4px solid #bad7ec; margin-top:10px; }
+    #output { border:4px solid #bad7ec; margin-top:10px; min-height:100px }
+    #output > div { display: table; border:4px solid #bad7ec; border-radius:10px; padding:10px 20px; max-width: 75%; }
     #errorText { display: block; color: red }
-    .output { border:4px solid #bad7ec; border-radius:10px; margin:10px 10px; padding:10px 20px; max-width: 75%;}
-    .right { margin-left: auto;}
-    .left { margin-right: auto;}
+    .right { margin:10px; margin-left: auto;}
+    .left { margin:10px; margin-right: auto;}
+    a {color: #4782c2; text-decoration: none;}
   </style>
 
   <section>
     <div class="top"> 
-      <input placeholder="Здесь вводится текст сообщения">
-      <button class="btn j-btn-send">Отправить</button>
+      <input id="input" placeholder="Здесь вводится текст сообщения">
+      <button class="btn btn-send">Отправить</button>
       <button class="btn btn-geo">Гео-локация</button>
     </div>
-    <div id="output">       
-      <div id="userTmezone" class="output right">
-          текст сообщения
-      </div>  
-      <div class="output left">
-        текст сообщения
-      </div> 
-      <div class="output right">
-      текст сообщения
-      </div>   
-    </div>
-  <div id="errorText">      
-  </div>
+    <div id="output"></div>
+    <div id="errorText"></div>
   </section>
 
-  <script>
- /*   const wsUri = "wss://echo.websocket.org/";
+<script>
+const btnSend = document.querySelector('.btn-send');
+const btnGeo = document.querySelector('.btn-geo'); 
+const inputText = document.querySelector('#input'); 
+const wsUri = "wss://echo.websocket.org/";
+let websocket = new WebSocket(wsUri);
 
-const output = document.getElementById("output");
-const btnOpen = document.querySelector('.j-btn-open');
-const btnClose = document.querySelector('.j-btn-close');
-const btnSend = document.querySelector('.j-btn-send');
-
-let websocket;
-
-function writeToScreen(message) {
-  let pre = document.createElement("p");
-  pre.style.wordWrap = "break-word";
-  pre.innerHTML = message;
-  output.appendChild(pre);
-}
-
-btnOpen.addEventListener('click', () => {
-  websocket = new WebSocket(wsUri);
-  websocket.onopen = function(evt) {
-    writeToScreen("CONNECTED");
-  };
-  websocket.onclose = function(evt) {
-    writeToScreen("DISCONNECTED");
-  };
-  websocket.onmessage = function(evt) {
-    writeToScreen(
-      '<span style="color: blue;">RESPONSE: ' + evt.data+'</span>'
-    );
-  };
-  websocket.onerror = function(evt) {
-    writeToScreen(
-      '<span style="color: red;">ERROR:</span> ' + evt.data
-    );
-  };
+// лог сообщений от сервера
+websocket.addEventListener("message", (event) => {
+  console.log("Message from server ", event.data);
 });
 
-btnClose.addEventListener('click', () => {
-  websocket.close();
-  websocket = null;
-});
+// сообщение об ошибке соединения
+websocket.onerror = function() {
+  errorText.innerText = 'Нет соединения с сервером';
+};
 
+
+// обработчик кнопки "Отправить" 
 btnSend.addEventListener('click', () => {
-  const message = 'Test message';
-  writeToScreen("SENT: " + message);
-  websocket.send(message);
+  const message = input.value;
+  if (!message) {
+    errorText.innerText = 'Пустое сообщение';
+  } else { 
+    errorText.innerText = '';
+    websocket.send(message); //отправляем сообщение на сервер   
+    output.innerHTML += `<div class="right">${message}</div>`; //выводим сообщение в чат  
+    
+    websocket.onmessage = function(evt) {
+    output.innerHTML += `<div class="left">${evt.data}</div>`; //выводим ответ сервера в чат
+    };
+  }
 });
-*/
+ 
 
+// обработчик кнопки "Гео-локация"  
+btnGeo.addEventListener('click', () => {   
+  if (!navigator.geolocation) {
+    error();
+  } else {
+    navigator.geolocation.getCurrentPosition(success, error);
+  }
 
-
-
-
-
-
-const btn = document.querySelector('.btn-geo');   
-
+  function success(position) {
+    const { longitude, latitude }  = position.coords;
+    const url = `https://www.openstreetmap.org/search?whereami=1&query=${latitude}%2C${longitude}#map=12/${latitude}/${longitude}`; 
     
-    btn.addEventListener('click', () => {    
-      errorText.innerText = ''; 
+    websocket.send(url); //отправляем на сервер         
+    output.innerHTML += `<div id="userGeo" class="right"><a href="` + url + `" target="_blank">Гео-локация</a></div>`; //выводим сообщение в чат 
+  }
 
-      // получение широты долготы
-      if (!navigator.geolocation) {
-        error();
-      } else {
-        userTmezone.innerText = "Получаю данные";
-        navigator.geolocation.getCurrentPosition(success, error);
-      }
-
-       function success(position) {
-        const { longitude, latitude }  = position.coords;
-        const url = `https://api.ipgeolocation.io/timezone?apiKey=32bcd4a6e4b548968e7afcdb682ac679&lat=` + latitude + `&long=` + longitude;       
-        userTmezone.innerText = `<a href="` + url + `">Гео-локация</a>`;
-       }
-            
-      function error () {
-        userTmezone.innerText = "";
-        errorText.innerText = 'Информация недоступна';
-      }
-
-      // вывод результата с https://www.openstreetmap.org/
-
-    
-    });
-  </script>
+  websocket.onmessage = function(evt) { console.log(evt.data) }; //НЕ выводим ответ сервера в чат
+      
+  function error () {
+    errorText.innerText = 'Информация о геолокации недоступна';
+  }    
+});
+</script>
     
 </body>
 </html>
